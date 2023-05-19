@@ -1,0 +1,47 @@
+#!/bin/bash
+
+ProjectResourceIdentifier="SXR"
+
+Build-ResourceName() {
+    sequenceNumber=$1
+    tla=$2
+    suffix=${3:-""}
+    lowerCase=$4
+    allowHyphens=false
+
+    while getopts "lh" opt; do
+        case $opt in
+            l) lowerCase=true;;
+            h) allowHyphens=true;;
+            \?) echo "Invalid option: -$OPTARG" >&2;;
+        esac
+    done
+    lowerCase=false
+    if $allowHyphens; then
+        separator='-'
+    else
+        separator=''
+    fi   
+    azureRegionAcronyms=("US" "EU" "AS")
+    environmentAbbreviations=("DEV" "PROD")
+
+    segmentA="AP${azureRegionAcronyms[$ResourceGroupLocation]}"
+    segmentB=$ProjectResourceIdentifier
+    segmentC=${environmentAbbreviations[$Environment]}
+    segmentD=$tla
+
+
+    if [ $sequenceNumber -eq 0 ]; then
+        name="${segmentA}${separator}${segmentB}${separator}${segmentC}${separator}${segmentD}${suffix}"
+    else
+        segmentE=$(printf "%02d" $sequenceNumber)
+        name="${segmentA}${separator}${segmentB}${separator}${segmentC}${separator}${segmentD}${separator}${segmentE}${suffix}"
+    fi
+
+    if $lowerCase; then
+        name=$(echo $name | tr '[:upper:]' '[:lower:]')
+    fi
+echo $name
+}
+keyvaultname= Build-ResourceName 1 "KYVLT" '' true
+echo $keyvaultname
